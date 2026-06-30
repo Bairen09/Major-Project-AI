@@ -40,3 +40,8 @@ temp/
 
 # Misc
 *.pid
+*.txt
+
+# Documents
+*.md
+docs/
