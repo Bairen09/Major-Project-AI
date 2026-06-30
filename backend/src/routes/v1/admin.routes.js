@@ -1,0 +1,24 @@
+const express = require('express');
+const router = express.Router();
+const adminController = require('../../controllers/admin.controller');
+const protectAdmin = require('../../middleware/protectAdmin');
+
+// All admin routes must be protected
+router.use(protectAdmin);
+
+router.get('/dashboard', adminController.getDashboard);
+router.get('/platform', adminController.getPlatformStatus);
+
+router.get('/users', adminController.getUsers);
+router.get('/users/:id', adminController.getUserDetails);
+router.patch('/users/:id/status', adminController.updateUserStatus);
+
+router.get('/businesses', adminController.getBusinesses);
+router.get('/businesses/:id', adminController.getBusinessDetails);
+router.patch('/businesses/:id/status', adminController.updateBusinessStatus);
+router.delete('/businesses/:id', adminController.deleteBusiness);
+
+router.get('/analytics', adminController.getAnalytics);
+router.get('/audit-logs', adminController.getAuditLogs);
+
+module.exports = router;

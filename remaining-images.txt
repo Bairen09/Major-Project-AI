@@ -1,0 +1,28 @@
+# Remaining Images to Generate for LocalBoost AI
+(Waiting for Gemini Image Generation Quota Reset at ~11:39 PM)
+
+Master Style Base:
+"Ultra realistic professional photography, cinematic lighting, warm gold highlights, soft depth of field, premium dark graphite and charcoal environment, glass reflections, 8k resolution, Apple and Linear inspired SaaS aesthetic, believable natural expressions."
+
+Target Resolutions:
+- How It Works: 1:1 or 16:9
+- About Page: 1920x1080 (16:9)
+- Features: 1600x1200 (3:2)
+- Dashboard Mockups: 1920x1080 (16:9)
+
+---
+
+## 1. How It Works (3 images)
+1. Step 1: Business creates profile. (Clean minimalist composition, hands typing on matte black laptop on a dark graphite desk, subtle gold glow).
+2. Step 2: AI generates content. (Glowing smartphone showing AI suggestions, premium dark environment, warm cinematic lighting).
+3. Step 3: Posts are automatically scheduled. (Sleek tablet showing a modern calendar UI, soft depth of field, champagne gold accents).
+
+## 2. About Page (2 images)
+4. Founders discussing product roadmap. (Small diverse team of Indian startup founders collaborating around a dark slate conference table, natural sunlight mixed with warm golden studio lighting).
+5. Customer success meeting. (Modern Indian professional leading a success meeting in a premium dark office, confident and approachable, glass reflections).
+
+## 3. Features (1 image)
+6. Business owner reviewing AI suggestions. (Over-the-shoulder shot of an Indian business owner looking at an AI marketing dashboard on a tablet, warm gold lighting, negative space).
+
+## 4. Dashboard Mockups (1 image)
+7. AI generated social posts gallery. (Realistic SaaS dashboard UI screenshot, NOT an illustration. Dark mode graphite interface, luxury champagne gold accents, social media post previews, premium glassmorphism widgets).
