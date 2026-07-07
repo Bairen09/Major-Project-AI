@@ -12,6 +12,7 @@ import { LogoMark } from '../components/common/Logo';
 
 // Lazy load pages
 const Home = React.lazy(() => import('../pages/Home'));
+const PublicBlogView = React.lazy(() => import('../pages/PublicBlogView'));
 const Login = React.lazy(() => import('../pages/Login'));
 const Register = React.lazy(() => import('../pages/Register'));
 const Dashboard = React.lazy(() => import('../pages/dashboard/Dashboard'));
@@ -23,6 +24,9 @@ const Analytics = React.lazy(() => import('../pages/dashboard/Analytics'));
 const Profile = React.lazy(() => import('../pages/dashboard/Profile'));
 const Notifications = React.lazy(() => import('../pages/dashboard/Notifications'));
 const Team = React.lazy(() => import('../pages/dashboard/Team'));
+const BlogsList = React.lazy(() => import('../pages/dashboard/BlogsList'));
+const BlogEditor = React.lazy(() => import('../pages/dashboard/BlogEditor'));
+const BlogView = React.lazy(() => import('../pages/dashboard/BlogView'));
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('../pages/admin/AdminDashboard'));
@@ -56,6 +60,8 @@ export default function AppRoutes() {
           <Route path="/solutions" element={<Solutions />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/about" element={<About />} />
+          <Route path="/blog/:id" element={<PublicBlogView />} />
+          <Route path="/blog/:id/:slug" element={<PublicBlogView />} />
         </Route>
 
         {/* Auth Routes (Login, Register) - Accessible only if NOT logged in */}
@@ -77,6 +83,10 @@ export default function AppRoutes() {
             <Route path="/dashboard/analytics" element={<Analytics />} />
             <Route path="/dashboard/notifications" element={<Notifications />} />
             <Route path="/dashboard/team" element={<Team />} />
+            <Route path="/dashboard/blogs" element={<BlogsList />} />
+            <Route path="/dashboard/blogs/new" element={<BlogEditor />} />
+            <Route path="/dashboard/blogs/:id/edit" element={<BlogEditor />} />
+            <Route path="/dashboard/blogs/:id" element={<BlogView />} />
             <Route path="/dashboard/settings" element={<Settings />} />
             <Route path="/dashboard/profile" element={<Profile />} />
           </Route>
@@ -92,6 +102,10 @@ export default function AppRoutes() {
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
             <Route path="/admin/platform" element={<AdminPlatform />} />
+            <Route path="/admin/blogs" element={<BlogsList />} />
+            <Route path="/admin/blogs/new" element={<BlogEditor />} />
+            <Route path="/admin/blogs/:id/edit" element={<BlogEditor />} />
+            <Route path="/admin/blogs/:id" element={<BlogView />} />
           </Route>
         </Route>
 

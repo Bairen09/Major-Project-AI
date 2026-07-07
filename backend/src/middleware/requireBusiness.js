@@ -11,6 +11,15 @@ const AppError = require('../errors/AppError');
  */
 const requireBusiness = async (req, res, next) => {
     try {
+        if (req.params.id === 'localboost') {
+            if (req.user && req.user.platformRole === 'SUPER_ADMIN') {
+                req.business = { _id: 'localboost', name: 'LocalBoost Platform' };
+                req.businessRole = 'owner';
+                return next();
+            }
+            return next(new AppError('Unauthorized access to platform blogs.', 403));
+        }
+
         const business = await Business.findById(req.params.id);
 
         if (!business) {

@@ -34,6 +34,7 @@ const protect = async (req, res, next) => {
         req.user = {
             id: user._id,
             role: user.role,
+            platformRole: user.platformRole,
         };
 
         // Fire and forget lastActive update (throttled to 5 minutes to reduce DB load)

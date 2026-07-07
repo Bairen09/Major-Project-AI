@@ -17,6 +17,7 @@ const postRoutes = require('./post.routes');
 const promptRoutes = require('./prompt.routes');
 const teamRoutes = require('./team.routes');
 const assistantRoutes = require('./assistant.routes');
+const blogRoutes = require('./blog.routes');
 
 const {
     createBusinessValidator,
@@ -32,6 +33,7 @@ router.use('/:id/posts', requireBusiness, postRoutes);
 router.use('/:id/prompts', requireBusiness, promptRoutes);
 router.use('/:id/team', teamRoutes);
 router.use('/:id/assistant', assistantRoutes);
+router.use('/:id/blogs', requireBusiness, blogRoutes);
 
 // ─── Collection Routes ────────────────────────────────────────────────────────
 

@@ -5,8 +5,10 @@ import { generatePost, savePost, uploadMedia, deleteMedia, updatePost, generateI
 import { getPromptHistory, toggleFavoritePrompt, reusePrompt } from '../../services/prompt.service';
 import { useNavigate } from 'react-router-dom';
 import ScheduleModal from '../../components/dashboard/ScheduleModal';
-import MediaUploader from '../../components/dashboard/MediaUploader';
+import ImagePromptEditor from '../../components/dashboard/ImagePromptEditor';
 import ImageViewer from '../../components/dashboard/ImageViewer';
+import PlatformLogo from '../../components/common/PlatformLogo';
+import { getCharLimit } from '../../utils/platformLimits';
 import { toast } from 'sonner';
 
 export default function AIGenerator() {
@@ -297,6 +299,28 @@ export default function AIGenerator() {
     const text = results.map((post, i) => `--- Post Option ${i + 1} ---\n\n${post.caption}\n\n${post.callToAction}\n\n${(post.hashtags || []).join(' ')}`).join('\n\n\n');
     navigator.clipboard.writeText(text);
     showToast('All posts copied to clipboard!');
+  };
+
+  const handleSharePlatform = async (post, platform, i) => {
+    const url = platform === 'instagram' ? 'https://instagram.com' : platform === 'facebook' ? 'https://facebook.com' : 'https://business.google.com';
+    const newWindow = window.open(url, '_blank');
+
+    let savedPost = post;
+    if (!savedIds.has(i)) {
+      savedPost = await saveAndGetPost(post, i);
+      if (!savedPost) {
+         newWindow?.close();
+         return;
+      }
+    }
+    
+    const text = `${savedPost.caption}\n\n${savedPost.callToAction}\n\n${(savedPost.hashtags || []).join(' ')}`;
+    navigator.clipboard.writeText(text);
+    showToast(`Copied content! Please paste it in the opened tab.`);
+    
+    if (savedPost.generatedImage?.url) {
+      handleDownloadImage(savedPost.generatedImage.url, `generated-${savedPost._id}.jpg`);
+    }
   };
 
   const openScheduleModal = async (post, index) => {
@@ -844,8 +868,15 @@ export default function AIGenerator() {
   
                           </div>
                           
+                          {/* Share Intents */}
+                          <div className="flex items-center gap-2 px-4 pt-4 border-t border-white/5">
+                            <button onClick={() => handleSharePlatform(post, 'instagram', i)} className="flex-1 text-[10px] uppercase font-bold py-2 rounded-lg bg-[#E1306C]/10 text-[#E1306C] hover:bg-[#E1306C]/20 transition">Share to Insta</button>
+                            <button onClick={() => handleSharePlatform(post, 'facebook', i)} className="flex-1 text-[10px] uppercase font-bold py-2 rounded-lg bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition">Share to FB</button>
+                            <button onClick={() => handleSharePlatform(post, 'google', i)} className="flex-1 text-[10px] uppercase font-bold py-2 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 transition">Share to Google</button>
+                          </div>
+
                           {/* Actions */}
-                          <div className="flex items-center gap-2 p-4 border-t border-white/5 bg-white/[0.02]">
+                          <div className="flex items-center gap-2 p-4 bg-white/[0.02]">
                             <button onClick={() => handleCopySingle(post)} className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-medium py-2.5 rounded-xl transition">
                               <Copy className="h-3.5 w-3.5" /> Copy
                             </button>
@@ -894,9 +925,22 @@ export default function AIGenerator() {
                               </div>
                            )}
                         </div>
-                        <div className="mt-4 pt-3 border-t border-white/5 text-center flex items-center justify-center gap-1.5 text-white/40 group-hover:text-[#D4AF37] transition-colors">
-                           <Maximize2 className="h-3 w-3" />
-                           <span className="text-[10px] font-bold uppercase tracking-wider">Click to Expand</span>
+                        <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-2">
+                           <div className="text-center flex items-center justify-center gap-1.5 text-white/40 group-hover:text-[#D4AF37] transition-colors">
+                              <Maximize2 className="h-3 w-3" />
+                              <span className="text-[10px] font-bold uppercase tracking-wider">Click to Expand</span>
+                           </div>
+                           <div className="flex gap-1 mt-1">
+                              <button onClick={(e) => { e.stopPropagation(); handleSharePlatform(post, 'instagram', i); }} className="flex-1 py-1.5 flex items-center justify-center rounded bg-white/5 hover:bg-[#E1306C]/20 transition tooltip" title="Share to Instagram">
+                                <PlatformLogo platform="instagram" className="h-4 w-4" />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleSharePlatform(post, 'facebook', i); }} className="flex-1 py-1.5 flex items-center justify-center rounded bg-white/5 hover:bg-[#1877F2]/20 transition tooltip" title="Share to Facebook">
+                                <PlatformLogo platform="facebook" className="h-4 w-4" />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleSharePlatform(post, 'google', i); }} className="flex-1 py-1.5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 transition tooltip" title="Share to Google">
+                                <PlatformLogo platform="google" className="h-4 w-4" />
+                              </button>
+                           </div>
                         </div>
                       </div>
                     ))}

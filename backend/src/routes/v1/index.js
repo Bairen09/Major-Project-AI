@@ -10,6 +10,7 @@ const businessRoutes = require('./business.routes');
 const postRoutes = require('./post.routes');
 const notificationRoutes = require('./notification.routes');
 const adminRoutes = require('./admin.routes');
+const publicRoutes = require('./public.routes');
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
@@ -18,5 +19,6 @@ router.use('/businesses', businessRoutes);
 router.use('/businesses/:id/posts', postRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
+router.use('/public', publicRoutes);
 
 module.exports = router;

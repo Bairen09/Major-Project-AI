@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { LogoMark } from '../components/common/Logo';
 import { 
   BarChart3, Users, Building2, TrendingUp, ScrollText, 
-  Server, LogOut, Menu, ChevronLeft, Search
+  Server, LogOut, Menu, ChevronLeft, ChevronRight, Search, BookOpen, Plus
 } from 'lucide-react';
+import UserProfileDropdown from '../components/dashboard/UserProfileDropdown';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -31,6 +32,8 @@ export default function AdminLayout() {
     { i: <BarChart3 className="h-5 w-5 flex-shrink-0" />, n: "Dashboard", path: "/admin/dashboard" },
     { i: <Users className="h-5 w-5 flex-shrink-0" />, n: "Users", path: "/admin/users" },
     { i: <Building2 className="h-5 w-5 flex-shrink-0" />, n: "Businesses", path: "/admin/businesses" },
+    { i: <BookOpen className="h-5 w-5 flex-shrink-0" />, n: "View Blogs", path: "/admin/blogs" },
+    { i: <Plus className="h-5 w-5 flex-shrink-0" />, n: "Create Blog", path: "/admin/blogs/new" },
     { i: <TrendingUp className="h-5 w-5 flex-shrink-0" />, n: "Analytics", path: "/admin/analytics" },
     { i: <ScrollText className="h-5 w-5 flex-shrink-0" />, n: "Audit Logs", path: "/admin/audit-logs" },
     { i: <Server className="h-5 w-5 flex-shrink-0" />, n: "Platform", path: "/admin/platform" },
@@ -48,9 +51,9 @@ export default function AdminLayout() {
       <aside className={`relative z-20 flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5 bg-[#111114]/80 backdrop-blur-xl flex flex-col ${isCollapsed ? 'w-[80px]' : 'w-[260px]'}`}>
         <div className="flex flex-col flex-1 p-4 overflow-y-auto apple-scrollbar">
           
-          {/* Header */}
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-8 mt-2 px-2`}>
-            <Link to="/admin/dashboard" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-8' : 'w-auto'} hover:opacity-80 transition-opacity`}>
+          {/* Header - Logo */}
+          <div className={`flex items-center justify-center mb-6 mt-2 px-2`}>
+            <Link to="/admin/dashboard" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-8' : 'w-full'} hover:opacity-80 transition-opacity`}>
               <LogoMark className="h-8 w-8 flex-shrink-0" />
               {!isCollapsed && (
                 <div className="flex flex-col transition-opacity duration-300">
@@ -59,24 +62,10 @@ export default function AdminLayout() {
                 </div>
               )}
             </Link>
-            {!isCollapsed && (
-              <button onClick={() => setIsCollapsed(true)} className="p-1.5 rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-colors">
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-            )}
           </div>
 
-          {/* Toggle button when collapsed */}
-          {isCollapsed && (
-            <div className="flex justify-center mb-6">
-              <button onClick={() => setIsCollapsed(false)} className="p-2 rounded-xl text-white/50 hover:bg-white/10 hover:text-white transition-colors">
-                <Menu className="h-5 w-5" />
-              </button>
-            </div>
-          )}
-
           {/* Nav Items */}
-          <nav className="flex-1 space-y-1.5">
+          <nav className="flex-1 space-y-1.5 mt-2">
             {navItems.map(it => {
               const isActive = location.pathname.startsWith(it.path);
               return (
@@ -93,31 +82,19 @@ export default function AdminLayout() {
             })}
           </nav>
           
-          {/* Bottom Section */}
+          {/* Bottom Section - Collapse */}
           <div className="pt-4 border-t border-white/5 space-y-4 mt-auto">
-            <Link to="/admin/platform" className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 px-2'} pt-2 hover:bg-white/5 p-2 rounded-xl transition-colors cursor-pointer group`}>
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-sm font-bold text-blue-400 border border-blue-500/30 overflow-hidden group-hover:border-blue-500/50 transition-colors" title={isCollapsed ? user?.name : ""}>
-                {user?.avatar?.url ? (
-                  <img src={user.avatar.url} alt={user.name} className="h-full w-full object-cover" />
-                ) : (
-                  user?.name?.charAt(0)?.toUpperCase()
-                )}
-              </div>
-              {!isCollapsed && (
-                <div className="flex flex-col flex-1 overflow-hidden transition-opacity duration-300">
-                  <span className="text-sm font-medium text-white/90 truncate group-hover:text-blue-400 transition-colors">{user?.name}</span>
-                  <span className="text-[10px] text-blue-400/80 truncate">Super Admin</span>
-                </div>
-              )}
-            </Link>
-
             <button 
-              onClick={handleLogout} 
-              title={isCollapsed ? "Logout" : ""}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-white/50 transition hover:bg-red-500/10 hover:text-red-400 ${isCollapsed ? 'justify-center' : ''}`}
+              onClick={() => setIsCollapsed(!isCollapsed)} 
+              title={isCollapsed ? "Expand" : "Collapse"}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-white/50 transition hover:bg-white/10 hover:text-white ${isCollapsed ? 'justify-center' : ''}`}
             >
-              <LogOut className="h-5 w-5 flex-shrink-0" /> 
-              {!isCollapsed && <span className="whitespace-nowrap transition-opacity duration-300">Logout</span>}
+              {isCollapsed ? <ChevronRight className="h-5 w-5 flex-shrink-0 text-white" /> : (
+                <>
+                  <ChevronLeft className="h-5 w-5 flex-shrink-0" /> 
+                  <span className="whitespace-nowrap transition-opacity duration-300">Collapse Menu</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -152,6 +129,7 @@ export default function AdminLayout() {
                </span>
                Production
              </div>
+             <UserProfileDropdown />
           </div>
         </div>
         

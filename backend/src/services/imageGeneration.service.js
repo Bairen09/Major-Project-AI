@@ -139,9 +139,29 @@ const generateWithFlux = async (prompt, options = {}) => {
   return { buffer: Buffer.from(arrayBuffer), model };
 };
 
+/**
+ * Pollinations.ai (Free, no API key required)
+ * Env: IMAGE_PROVIDER=pollinations
+ */
+const generateWithPollinations = async (prompt, options = {}) => {
+  const width = options.size?.split('x')[0] || 1024;
+  const height = options.size?.split('x')[1] || 1024;
+  const seed = Math.floor(Math.random() * 1000000000);
+  const encodedPrompt = encodeURIComponent(prompt);
+  const apiUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+
+  const response = await fetch(apiUrl);
+  if (!response.ok) {
+    throw new AppError(`Pollinations image generation failed: ${response.status}`, 502);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  return { buffer: Buffer.from(arrayBuffer), model: 'pollinations' };
+};
+
 // ─── Provider Router ─────────────────────────────────────────────────────────
 
-const PROVIDERS = { openai: generateWithOpenAI, gemini: generateWithGemini, flux: generateWithFlux };
+const PROVIDERS = { openai: generateWithOpenAI, gemini: generateWithGemini, flux: generateWithFlux, pollinations: generateWithPollinations };
 
 /**
  * Main entry point.
@@ -152,20 +172,24 @@ const PROVIDERS = { openai: generateWithOpenAI, gemini: generateWithGemini, flux
  * @returns {{ url, publicId, provider, model }}
  */
 const generateAndUpload = async (prompt, options = {}) => {
-  const providerKey = (process.env.IMAGE_PROVIDER || 'openai').toLowerCase();
-  const generator   = PROVIDERS[providerKey];
+  const providerKey = (process.env.IMAGE_PROVIDER || 'pollinations').toLowerCase();
+  let generator = PROVIDERS[providerKey] || PROVIDERS['pollinations'];
+  let generatedData;
+  let finalProvider = providerKey;
 
-  if (!generator) {
-    throw new AppError(
-      `Unsupported IMAGE_PROVIDER "${providerKey}". Valid options: openai, gemini, flux.`,
-      500
-    );
+  try {
+    generatedData = await generator(prompt, options);
+  } catch (err) {
+    console.warn(`[ImageGen] Provider "${providerKey}" failed: ${err.message}. Falling back to pollinations...`);
+    generator = PROVIDERS['pollinations'];
+    generatedData = await generator(prompt, options);
+    finalProvider = 'pollinations';
   }
 
-  const { buffer, model } = await generator(prompt, options);
+  const { buffer, model } = generatedData;
   const { url, publicId } = await uploadBufferToCloudinary(buffer);
 
-  return { url, publicId, provider: providerKey, model };
+  return { url, publicId, provider: finalProvider, model };
 };
 
 module.exports = { generateAndUpload };

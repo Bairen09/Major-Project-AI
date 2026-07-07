@@ -22,7 +22,7 @@ export default function Navbar() {
               const path = `/${l.toLowerCase().replace(/\s+/g, "-")}`;
               const isActive = location.pathname === path;
               return (
-                <Link key={l} to={path} className={`text-sm transition-colors hover:text-white ${isActive ? 'text-white font-semibold' : 'text-muted-foreground'}`}>
+                <Link key={l} to={path} className={`text-sm px-3 py-1.5 rounded-lg transition-colors hover:text-white hover:bg-white/10 ${isActive ? 'bg-yellow-500/20 text-white font-semibold' : 'text-gray-100'}`}>
                   {l}
                 </Link>
               );
@@ -55,7 +55,7 @@ export default function Navbar() {
               const path = `/${l.toLowerCase().replace(/\s+/g, "-")}`;
               const isActive = location.pathname === path;
               return (
-                <Link key={l} to={path} className={`rounded-lg px-3 py-2 hover:bg-white/5 ${isActive ? 'text-[#D4AF37] font-semibold bg-white/5' : 'text-white'}`} onClick={() => setOpen(false)}>
+                <Link key={l} to={path} className={`rounded-lg px-3 py-2 transition-colors hover:bg-white/10 ${isActive ? 'bg-yellow-500/20 text-white font-semibold' : 'text-gray-100'}`} onClick={() => setOpen(false)}>
                   {l}
                 </Link>
               );

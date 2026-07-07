@@ -301,5 +301,7 @@ module.exports = {
   uploadLogo,
   deleteLogo,
   uploadCoverImage,
-  deleteCoverImage
+  deleteCoverImage,
+  uploadToCloudinary,
+  deleteFromCloudinary
 };

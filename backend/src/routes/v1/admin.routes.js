@@ -6,6 +6,13 @@ const protectAdmin = require('../../middleware/protectAdmin');
 // All admin routes must be protected
 router.use(protectAdmin);
 
+const blogRoutes = require('./blog.routes');
+router.use('/blogs', (req, res, next) => {
+    req.business = { _id: 'localboost', name: 'LocalBoost Platform' };
+    req.businessRole = 'owner';
+    next();
+}, blogRoutes);
+
 router.get('/dashboard', adminController.getDashboard);
 router.get('/platform', adminController.getPlatformStatus);
 

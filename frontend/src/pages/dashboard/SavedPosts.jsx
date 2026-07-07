@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import ScheduleModal from '../../components/dashboard/ScheduleModal';
 import ImageViewer from '../../components/dashboard/ImageViewer';
 import MediaUploader from '../../components/dashboard/MediaUploader';
+import PlatformLogo from '../../components/common/PlatformLogo';
 import { toast } from 'sonner';
 
 export default function SavedPosts() {
@@ -16,13 +17,14 @@ export default function SavedPosts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPost, setSelectedPost] = useState(null);
-  const [toast, setToast] = useState('');
+  const [localToastMessage, setLocalToastMessage] = useState('');
   
   // Editor State
   const [editingPost, setEditingPost] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [shareMenuPostId, setShareMenuPostId] = useState(null);
   
   // Delete State
   const [postToDelete, setPostToDelete] = useState(null);
@@ -78,10 +80,47 @@ export default function SavedPosts() {
   }, [page, limit]);
 
   const handleCopy = (post) => {
-    const text = post.content?.text || post.content;
+    const text = `${post.content?.text || post.content}\n\n${(post.hashtags || []).join(' ')}`;
     navigator.clipboard.writeText(text);
-    setToast("Copied!");
-    setTimeout(() => setToast(''), 3000);
+    toast.success("Copied!");
+  };
+
+  const handleDownloadImage = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Failed to download image", err);
+    }
+  };
+
+  const handleSharePlatform = (post, platform) => {
+    const text = `${post.content?.text || post.content}\n\n${(post.hashtags || []).join(' ')}`;
+    navigator.clipboard.writeText(text);
+    toast.success(`Copied content! Opening ${platform}...`);
+    
+    // Download image if present
+    if (post.generatedImage?.url) {
+      handleDownloadImage(post.generatedImage.url, `generated-${post._id}.jpg`);
+    } else if (post.media && post.media.length > 0) {
+      handleDownloadImage(post.media[0].url, `media-${post._id}.jpg`);
+    }
+
+    setTimeout(() => {
+        if (platform === 'instagram') window.open('https://instagram.com', '_blank');
+        else if (platform === 'facebook') window.open('https://facebook.com', '_blank');
+        else if (platform === 'google') window.open('https://business.google.com', '_blank');
+        else window.open('https://instagram.com', '_blank'); // fallback
+    }, 1500);
+    setShareMenuPostId(null);
   };
 
   const confirmDelete = async () => {
@@ -172,8 +211,8 @@ export default function SavedPosts() {
         media: [...(prev.media || []), newMedia]
       }));
       setPosts(prev => prev.map(p => p._id === editingPost._id ? { ...p, media: [...(p.media || []), newMedia] } : p));
-      setToast('Image uploaded successfully.');
-      setTimeout(() => setToast(''), 3000);
+      setLocalToastMessage('Image uploaded successfully.');
+      setTimeout(() => setLocalToastMessage(''), 3000);
     } catch (err) {
       toast.error('Failed to upload image.');
     } finally {
@@ -192,8 +231,8 @@ export default function SavedPosts() {
         media: updatedMedia
       }));
       setPosts(prev => prev.map(p => p._id === editingPost._id ? { ...p, media: updatedMedia } : p));
-      setToast('Image removed.');
-      setTimeout(() => setToast(''), 3000);
+      setLocalToastMessage('Image removed.');
+      setTimeout(() => setLocalToastMessage(''), 3000);
     } catch (err) {
       toast.error('Failed to remove image.');
     }
@@ -277,9 +316,9 @@ export default function SavedPosts() {
   return (
     <div>
       {/* Global Toast */}
-      {toast && (
+      {localToastMessage && (
         <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] bg-green-500/20 text-green-200 border border-green-500/30 px-4 py-2 rounded-full text-sm flex items-center gap-2 backdrop-blur-md animate-in slide-in-from-top-4 fade-in duration-300">
-          <Check className="h-4 w-4" /> {toast}
+          <Check className="h-4 w-4" /> {localToastMessage}
         </div>
       )}
 
@@ -467,9 +506,30 @@ export default function SavedPosts() {
                     <button onClick={() => setPostToDelete(post)} className="p-2 hover:bg-red-500/10 rounded-lg text-white/60 hover:text-red-400 transition" title="Delete">
                       <Trash2 className="h-4 w-4" />
                     </button>
-                    <button disabled className="p-2 rounded-lg text-white/30 cursor-not-allowed tooltip" title="Coming Soon">
-                      <Share2 className="h-4 w-4" />
-                    </button>
+                    {post.status === 'scheduled' && (
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setShareMenuPostId(shareMenuPostId === post._id ? null : post._id); }} 
+                          className={`p-2 rounded-lg transition tooltip ${shareMenuPostId === post._id ? 'bg-green-500/20 text-green-400' : 'hover:bg-green-500/10 text-white/60 hover:text-green-400'}`} 
+                          title="Share to Platform"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                        {shareMenuPostId === post._id && (
+                          <div className="absolute right-0 bottom-full mb-2 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl p-2 flex items-center gap-2 z-50">
+                            <button onClick={(e) => { e.stopPropagation(); handleSharePlatform(post, 'instagram'); }} className="p-2 hover:bg-[#E1306C]/10 rounded-lg transition" title="Share to Instagram">
+                              <PlatformLogo platform="instagram" className="h-5 w-5" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleSharePlatform(post, 'facebook'); }} className="p-2 hover:bg-[#1877F2]/10 rounded-lg transition" title="Share to Facebook">
+                              <PlatformLogo platform="facebook" className="h-5 w-5" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleSharePlatform(post, 'google'); }} className="p-2 hover:bg-white/10 rounded-lg transition" title="Share to Google">
+                              <PlatformLogo platform="google" className="h-5 w-5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -799,8 +859,8 @@ export default function SavedPosts() {
         businessId={business?._id}
         onSuccess={() => {
           setPostToSchedule(null);
-          setToast("Post scheduled successfully!");
-          setTimeout(() => setToast(''), 3000);
+          setLocalToastMessage("Post scheduled successfully!");
+          setTimeout(() => setLocalToastMessage(''), 3000);
           fetchPosts();
         }}
       />
