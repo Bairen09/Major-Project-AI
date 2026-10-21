@@ -5,6 +5,7 @@ const PromptHistory = require('../models/PromptHistory');
 const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 // Helper for pagination
 const getPaginationOptions = (query) => {
@@ -120,6 +121,30 @@ exports.getPlatformStatus = async () => {
     environment: process.env.NODE_ENV,
     uptime: process.uptime()
   };
+};
+
+exports.createUser = async (userData) => {
+  const { name, email, password, platformRole } = userData;
+  
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw new Error('Email already in use');
+  }
+
+  const user = new User({
+    name,
+    email,
+    password,
+    platformRole: platformRole || 'USER',
+    status: 'ACTIVE'
+  });
+
+  await user.save();
+  
+  // Return user without password
+  const userObj = user.toObject();
+  delete userObj.password;
+  return userObj;
 };
 
 exports.getUsers = async (query) => {

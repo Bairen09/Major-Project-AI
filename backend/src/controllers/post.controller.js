@@ -1,6 +1,7 @@
 // src/controllers/post.controller.js
 
 const postService = require('../services/post.service');
+const subscriptionService = require('../services/subscription.service');
 const { sendSuccess, sendCreated, sendNoContent } = require('../utils/apiResponse');
 
 const getMeta = (req) => ({
@@ -13,6 +14,7 @@ const getMeta = (req) => ({
 
 const generatePosts = async (req, res, next) => {
     try {
+        await subscriptionService.consumePostQuota(req.user.id);
         const data = await postService.generatePosts({
             business: req.business,
             params: req.body,
@@ -29,6 +31,7 @@ const generatePosts = async (req, res, next) => {
 
 const savePost = async (req, res, next) => {
     try {
+        await subscriptionService.consumePostQuota(req.user.id);
         const data = await postService.savePost({
             business: req.business,
             userId: req.user.id,

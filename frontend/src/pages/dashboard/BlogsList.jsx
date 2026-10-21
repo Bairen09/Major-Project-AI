@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, BookOpen, Clock, Calendar as CalendarIcon, ArrowRight, Trash2, Edit3, Eye } from 'lucide-react';
-import { getBusinesses } from '../../services/business.service';
+import { useBusiness } from '../../context/BusinessContext';
 import { getBlogs, deleteBlog, getPublicBlogs } from '../../services/blog.service';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
@@ -9,18 +9,19 @@ import { toast } from 'sonner';
 export default function BlogsList() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [business, setBusiness] = useState(null);
+  const { activeBusiness: business } = useBusiness();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(user?.platformRole === 'SUPER_ADMIN' ? 'localboost' : 'my_company'); // 'my_company', 'other_companies', 'localboost'
+  const isPlatformUser = user?.platformRole === 'SUPER_ADMIN' || user?.platformRole === 'BLOGGER';
+  const [activeTab, setActiveTab] = useState(isPlatformUser ? 'localboost' : 'my_company'); // 'my_company', 'other_companies', 'localboost'
   
-  const basePath = user?.platformRole === 'SUPER_ADMIN' ? '/admin/blogs' : '/dashboard/blogs';
+  const basePath = user?.platformRole === 'SUPER_ADMIN' ? '/admin/blogs' : user?.platformRole === 'BLOGGER' ? '/blogger' : '/dashboard/blogs';
 
   useEffect(() => {
     const fetchBlogsList = async () => {
       setLoading(true);
       try {
-        if (user?.platformRole === 'SUPER_ADMIN') {
+        if (isPlatformUser) {
           let res;
           if (activeTab === 'localboost') {
              res = await getPublicBlogs({ isSuperAdminBlog: true });
@@ -30,17 +31,14 @@ export default function BlogsList() {
           setBlogs(res?.data?.data?.blogs || []);
           return;
         }
-        const { data: { data: businesses } } = await getBusinesses();
-        if (businesses && businesses.length > 0) {
-          const biz = businesses[0];
-          setBusiness(biz);
-          
+        
+        if (business) {
           let res;
           if (activeTab === 'my_company') {
-            res = await getBlogs(biz._id);
+            res = await getBlogs(business._id);
             setBlogs(res.data.data.data || []);
           } else if (activeTab === 'other_companies') {
-             res = await getPublicBlogs({ excludeBusinessId: biz._id });
+             res = await getPublicBlogs({ excludeBusinessId: business._id });
              setBlogs(res.data.data.blogs || []);
           } else if (activeTab === 'localboost') {
              res = await getPublicBlogs({ isSuperAdminBlog: true });
@@ -54,13 +52,13 @@ export default function BlogsList() {
       }
     };
     fetchBlogsList();
-  }, [activeTab]);
+  }, [activeTab, business?._id, isPlatformUser]);
 
   const handleDelete = async (blogId) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
     try {
       // Pass null for businessId if super admin
-      await deleteBlog(user?.platformRole === 'SUPER_ADMIN' ? 'localboost' : business?._id, blogId);
+      await deleteBlog(isPlatformUser ? 'localboost' : business?._id, blogId);
       setBlogs(blogs.filter(b => b._id !== blogId));
       toast.success("Blog deleted successfully");
     } catch (err) {
@@ -102,7 +100,7 @@ export default function BlogsList() {
           <p className="text-muted-foreground mt-1">Manage, write, and generate SEO-optimized blogs.</p>
         </div>
         
-        {((activeTab === 'my_company') || (user?.platformRole === 'SUPER_ADMIN' && activeTab === 'localboost')) && (
+        {((activeTab === 'my_company') || (isPlatformUser && activeTab === 'localboost')) && (
           <div className="flex items-center gap-3">
             <Link 
               to={`${basePath}/new?mode=manual`}
@@ -122,7 +120,7 @@ export default function BlogsList() {
       
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-white/10 pb-4 overflow-x-auto apple-scrollbar">
-        {user?.platformRole !== 'SUPER_ADMIN' && (
+        {!isPlatformUser && (
           <button 
             onClick={() => setActiveTab('my_company')} 
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'my_company' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
@@ -177,9 +175,9 @@ export default function BlogsList() {
           </div>
           <h2 className="text-xl font-bold mb-2">No blogs found</h2>
           <p className="text-white/50 max-w-sm mx-auto mb-8">
-            {activeTab === 'my_company' || (user?.platformRole === 'SUPER_ADMIN' && activeTab === 'localboost') ? "You haven't created any blogs yet. Boost your local SEO by publishing consistent content." : "No blogs found in this category yet."}
+            {activeTab === 'my_company' || (isPlatformUser && activeTab === 'localboost') ? "You haven't created any blogs yet. Boost your local SEO by publishing consistent content." : "No blogs found in this category yet."}
           </p>
-          {(activeTab === 'my_company' || (user?.platformRole === 'SUPER_ADMIN' && activeTab === 'localboost')) && (
+          {(activeTab === 'my_company' || (isPlatformUser && activeTab === 'localboost')) && (
             <div className="flex gap-4">
               <Link to={`${basePath}/new?mode=ai`} className="btn-cta inline-flex items-center gap-2 rounded-xl py-3 px-6 font-bold shadow-lg shadow-[#D4AF37]/20 transition-all hover:-translate-y-1">
                  <Sparkles className="h-5 w-5" /> Generate First Blog
@@ -225,7 +223,7 @@ export default function BlogsList() {
                     {new Date(blog.createdAt).toLocaleDateString()}
                   </div>
                   <div className="flex items-center gap-2">
-                    {(activeTab === 'my_company' || (user?.platformRole === 'SUPER_ADMIN' && activeTab === 'localboost')) && (
+                    {(activeTab === 'my_company' || (isPlatformUser && activeTab === 'localboost')) && (
                       <>
                         <button 
                           onClick={() => handleDelete(blog._id)}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Sparkles, Image as ImageIcon, Copy, Trash2, Eye, X, Edit2, Check, AlertCircle, Share2, Files, Calendar, ArrowLeft, Loader2 } from 'lucide-react';
 import { updatePost as updatePostService } from '../../services/post.service';
-import { getBusinesses } from '../../services/business.service';
+import { useBusiness } from '../../context/BusinessContext';
 import { getPosts, deletePost, duplicatePost, uploadMedia, deleteMedia } from '../../services/post.service';
 import { Link, useNavigate } from 'react-router-dom';
 import ScheduleModal from '../../components/dashboard/ScheduleModal';
@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 export default function SavedPosts() {
   const navigate = useNavigate();
-  const [business, setBusiness] = useState(null);
+  const { activeBusiness: business } = useBusiness();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -56,16 +56,13 @@ export default function SavedPosts() {
   const [filterDate, setFilterDate] = useState('newest');
 
   const fetchPosts = async () => {
+    if (!business?._id) return;
     setLoading(true);
     try {
-      const { data: { data: businesses } } = await getBusinesses();
-      if (businesses && businesses.length > 0) {
-        setBusiness(businesses[0]);
-        const res = await getPosts(businesses[0]._id, { page, limit });
-        setPosts(res.data.data?.posts || []);
-        if (res.data.data?.pagination) {
-          setPaginationInfo(res.data.data.pagination);
-        }
+      const res = await getPosts(business._id, { page, limit });
+      setPosts(res.data.data?.posts || []);
+      if (res.data.data?.pagination) {
+        setPaginationInfo(res.data.data.pagination);
       }
     } catch (err) {
       console.error("Failed to fetch posts", err);
@@ -77,7 +74,7 @@ export default function SavedPosts() {
 
   useEffect(() => {
     fetchPosts();
-  }, [page, limit]);
+  }, [page, limit, business?._id]);
 
   const handleCopy = (post) => {
     const text = `${post.content?.text || post.content}\n\n${(post.hashtags || []).join(' ')}`;

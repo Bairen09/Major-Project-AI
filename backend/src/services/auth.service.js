@@ -37,6 +37,14 @@ const register = async ({ name, email, password }, meta = {}) => {
 
   const user = await User.create({ name, email: normalizedEmail, password });
 
+  // Step 2: Auto-create a FREE subscription for the new user
+  const Subscription = require('../models/Subscription');
+  await Subscription.create({
+    ownerId: user._id,
+    planKey: 'FREE',
+    status: 'ACTIVE',
+  });
+
   await writeAuditLog({
     action: 'USER_REGISTERED',
     userId: user._id,
@@ -60,7 +68,41 @@ const login = async ({ email, password }, meta = {}) => {
 
   const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
-  if (!user || !(await user.comparePassword(password))) {
+  if (!user) {
+    const Staff = require('../models/Staff');
+    const staff = await Staff.findOne({ email: normalizedEmail }).select('+password');
+    if (staff) {
+      if (!(await staff.comparePassword(password))) {
+        throw new AppError('Invalid email or password.', 401);
+      }
+      if (!staff.isActive) {
+        throw new AppError('Your staff account has been deactivated. Please contact a superadmin.', 403);
+      }
+      
+      staff.lastLoginAt = new Date();
+      await staff.save({ validateBeforeSave: false });
+
+      await writeAuditLog({
+        action: 'STAFF_LOGIN_VIA_MAIN',
+        userId: null,
+        entityId: staff._id,
+        meta,
+      });
+
+      const { signStaffToken } = require('../utils/jwt');
+      const token = signStaffToken({ id: staff._id, role: staff.role });
+
+      return {
+        isStaff: true,
+        staff: staff.toJSON(),
+        token,
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      };
+    }
+    throw new AppError('Invalid email or password.', 401);
+  }
+
+  if (!(await user.comparePassword(password))) {
     throw new AppError('Invalid email or password.', 401);
   }
 

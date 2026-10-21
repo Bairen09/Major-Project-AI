@@ -44,4 +44,5 @@ temp/
 
 # Documents
 *.md
+!README.md
 docs/

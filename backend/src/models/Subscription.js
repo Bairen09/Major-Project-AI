@@ -1,55 +1,53 @@
 const mongoose = require('mongoose');
 const basePlugin = require('./plugins/basePlugin');
-const PLANS = require('../constants/plans');
 
 const subscriptionSchema = new mongoose.Schema({
-  userId: {
+  ownerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'User is required'],
-    index: true,
+    required: [true, 'Owner is required'],
+    unique: true,
   },
-  businessId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Business',
-    required: [true, 'Business is required'],
-    index: true,
-  },
-  plan: {
+  planKey: {
     type: String,
-    enum: Object.values(PLANS),
-    default: PLANS.STARTER,
+    enum: ['FREE', 'STARTER', 'PRO', 'AGENCY'],
+    default: 'FREE',
   },
   status: {
     type: String,
-    enum: ['active', 'cancelled', 'expired', 'trial'],
-    default: 'trial',
+    enum: ['TRIAL', 'ACTIVE', 'EXPIRED', 'CANCELLED'],
+    default: 'ACTIVE',
   },
-  // Stripe fields — empty for now, populated in Sprint 9
+  startDate: {
+    type: Date,
+    default: Date.now,
+  },
+  expiresAt: {
+    type: Date,
+    required: [true, 'expiresAt is required'],
+    default: function() {
+      // Default 30 days from startDate
+      const start = this.startDate || Date.now();
+      return new Date(start.valueOf() + 30 * 24 * 60 * 60 * 1000);
+    }
+  },
+  postsUsedToday: {
+    type: Number,
+    default: 0,
+  },
+  postsCountResetAt: {
+    type: Date,
+    default: Date.now,
+  },
+  reminderSentAt: {
+    type: Date,
+    default: null,
+  },
   stripeCustomerId: {
     type: String,
     default: null,
   },
-  stripeSubscriptionId: {
-    type: String,
-    default: null,
-  },
-  currentPeriodStart: {
-    type: Date,
-    default: null,
-  },
-  currentPeriodEnd: {
-    type: Date,
-    default: null,
-  },
-  cancelledAt: {
-    type: Date,
-    default: null,
-  },
 });
-
-// Indexes
-subscriptionSchema.index({ userId: 1, businessId: 1 });
 
 subscriptionSchema.set('toJSON', {
   transform: (doc, ret) => {

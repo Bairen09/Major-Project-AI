@@ -4,9 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { LogoMark } from '../components/common/Logo';
 import { 
   BarChart3, Users, Building2, TrendingUp, ScrollText, 
-  Server, LogOut, Menu, ChevronLeft, ChevronRight, Search, BookOpen, Plus
+  Server, LogOut, Menu, ChevronLeft, ChevronRight, Search, BookOpen, Plus, CreditCard
 } from 'lucide-react';
 import UserProfileDropdown from '../components/dashboard/UserProfileDropdown';
+import NotificationBell from '../components/dashboard/NotificationBell';
+import CommonFAQ from '../components/common/CommonFAQ';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -32,6 +34,7 @@ export default function AdminLayout() {
     { i: <BarChart3 className="h-5 w-5 flex-shrink-0" />, n: "Dashboard", path: "/admin/dashboard" },
     { i: <Users className="h-5 w-5 flex-shrink-0" />, n: "Users", path: "/admin/users" },
     { i: <Building2 className="h-5 w-5 flex-shrink-0" />, n: "Businesses", path: "/admin/businesses" },
+    { i: <CreditCard className="h-5 w-5 flex-shrink-0" />, n: "Subscriptions", path: "/admin/subscriptions" },
     { i: <BookOpen className="h-5 w-5 flex-shrink-0" />, n: "View Blogs", path: "/admin/blogs" },
     { i: <Plus className="h-5 w-5 flex-shrink-0" />, n: "Create Blog", path: "/admin/blogs/new" },
     { i: <TrendingUp className="h-5 w-5 flex-shrink-0" />, n: "Analytics", path: "/admin/analytics" },
@@ -53,7 +56,7 @@ export default function AdminLayout() {
           
           {/* Header - Logo */}
           <div className={`flex items-center justify-center mb-6 mt-2 px-2`}>
-            <Link to="/admin/dashboard" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-8' : 'w-full'} hover:opacity-80 transition-opacity`}>
+            <Link to="/" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-8' : 'w-full'} hover:opacity-80 transition-opacity`}>
               <LogoMark className="h-8 w-8 flex-shrink-0" />
               {!isCollapsed && (
                 <div className="flex flex-col transition-opacity duration-300">
@@ -129,6 +132,7 @@ export default function AdminLayout() {
                </span>
                Production
              </div>
+             <NotificationBell />
              <UserProfileDropdown />
           </div>
         </div>
@@ -137,6 +141,8 @@ export default function AdminLayout() {
           <div className="flex-1">
              <Outlet />
           </div>
+
+          <CommonFAQ />
           
           {/* Footer */}
           <footer className="w-full py-8 mt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-xs text-white/40">

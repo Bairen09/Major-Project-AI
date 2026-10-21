@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Search, Filter, MoreVertical, ShieldAlert, CheckCircle, 
-  XCircle, Trash2, Mail, Loader2
+  XCircle, Trash2, Mail, Loader2, UserPlus
 } from 'lucide-react';
 import { getAdminUsers, updateAdminUserStatus } from '../../services/admin.service';
 import AdminUserDrawer from './AdminUserDrawer';
+import CreateUserModal from './CreateUserModal';
 import { toast } from 'sonner';
 
 export default function AdminUsers() {
@@ -17,6 +18,7 @@ export default function AdminUsers() {
   
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [selectedUserForDrawer, setSelectedUserForDrawer] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -83,6 +85,13 @@ export default function AdminUsers() {
                <button onClick={() => handleBulkAction('DELETED')} className="p-1.5 hover:bg-white/10 rounded-lg text-red-400" title="Delete Selected"><Trash2 className="h-4 w-4" /></button>
              </div>
            )}
+           
+           <button 
+             onClick={() => setIsCreateModalOpen(true)}
+             className="bg-[#D4AF37] hover:bg-[#F5D77A] text-black px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] flex items-center gap-2 whitespace-nowrap"
+           >
+             <UserPlus className="h-4 w-4" /> Add User
+           </button>
            
            <div className="relative group">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-[#D4AF37] transition-colors" />
@@ -219,6 +228,12 @@ export default function AdminUsers() {
         onClose={() => setSelectedUserForDrawer(null)} 
         user={selectedUserForDrawer}
         onStatusUpdated={fetchUsers}
+      />
+
+      <CreateUserModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onUserCreated={fetchUsers}
       />
     </div>
   );

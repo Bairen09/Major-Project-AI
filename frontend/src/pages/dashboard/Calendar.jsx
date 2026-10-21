@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles, ArrowLeft } from 'lucide-react';
-import { getBusinesses, getCalendar } from '../../services/business.service';
+import { getCalendar } from '../../services/business.service';
+import { useBusiness } from '../../context/BusinessContext';
 import PostDetailsDrawer from '../../components/dashboard/PostDetailsDrawer';
 import PlatformLogo from '../../components/common/PlatformLogo';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Calendar() {
-  const [business, setBusiness] = useState(null);
+  const { activeBusiness: business } = useBusiness();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -15,15 +16,11 @@ export default function Calendar() {
   const navigate = useNavigate();
 
   const fetchCalendarData = async () => {
+    if (!business?._id) return;
     setLoading(true);
     try {
-      const { data: { data: businesses } } = await getBusinesses();
-      if (businesses && businesses.length > 0) {
-        const activeBusiness = businesses[0];
-        setBusiness(activeBusiness);
-        const res = await getCalendar(activeBusiness._id);
-        setEvents(res.data.data || []);
-      }
+      const res = await getCalendar(business._id);
+      setEvents(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch calendar", err);
     } finally {
@@ -33,7 +30,7 @@ export default function Calendar() {
 
   useEffect(() => {
     fetchCalendarData();
-  }, []);
+  }, [business?._id]);
 
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();

@@ -12,7 +12,7 @@ const AppError = require('../errors/AppError');
 const requireBusiness = async (req, res, next) => {
     try {
         if (req.params.id === 'localboost') {
-            if (req.user && req.user.platformRole === 'SUPER_ADMIN') {
+            if (req.user && (req.user.platformRole === 'SUPER_ADMIN' || req.user.platformRole === 'BLOGGER')) {
                 req.business = { _id: 'localboost', name: 'LocalBoost Platform' };
                 req.businessRole = 'owner';
                 return next();

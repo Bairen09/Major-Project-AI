@@ -11,6 +11,8 @@ const postRoutes = require('./post.routes');
 const notificationRoutes = require('./notification.routes');
 const adminRoutes = require('./admin.routes');
 const publicRoutes = require('./public.routes');
+const ticketRoutes = require('./ticket.routes');
+const supportRoutes = require('./support.routes');
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
@@ -20,5 +22,7 @@ router.use('/businesses/:id/posts', postRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/public', publicRoutes);
+router.use('/tickets', ticketRoutes);
+router.use('/support', supportRoutes);
 
 module.exports = router;

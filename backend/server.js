@@ -13,6 +13,10 @@ const startServer = async () => {
 
   try {
     await connectDB();
+    
+    // Start background jobs
+    const { startJobs } = require('./src/jobs/subscriptionJobs');
+    startJobs();
 
     const server = app.listen(PORT, () => {
       console.log(`

@@ -22,7 +22,14 @@ export default function Login() {
     setLoading(true);
     try {
       const response = await loginService({ email, password });
-      const { token, user } = response.data.data;
+      const { token, user, isStaff } = response.data.data;
+      
+      if (isStaff) {
+        localStorage.setItem('staffToken', token);
+        navigate('/support/inbox');
+        return;
+      }
+
       login(token, user);
       if (user.platformRole === 'SUPER_ADMIN') {
         navigate("/admin/dashboard");

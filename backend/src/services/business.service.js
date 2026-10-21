@@ -6,6 +6,8 @@ const AuditLog = require('../models/AuditLog');
 const AppError = require('../errors/AppError');
 const Post = require('../models/Post');
 const PromptHistory = require('../models/PromptHistory');
+const Subscription = require('../models/Subscription');
+const PLANS = require('../constants/plans');
 const ROLES = require('../constants/roles');
 const notificationService = require('./notification.service');
 const NOTIFICATION_TYPES = require('../constants/notificationTypes');
@@ -35,6 +37,26 @@ const writeAuditLog = async ({ action, userId, businessId, entityId, meta = {} }
 // ─── Create Business ──────────────────────────────────────────────────────────
 
 const createBusiness = async ({ userId, data, meta = {} }) => {
+  const subscription = await Subscription.findOne({ ownerId: userId });
+  if (!subscription) {
+    throw new AppError('Subscription not found. Please contact support.', 404);
+  }
+  if (subscription.status !== 'ACTIVE') {
+    throw new AppError('subscription expired, please renew', 403);
+  }
+
+  const planLimits = PLANS[subscription.planKey];
+  if (!planLimits) {
+    throw new AppError('Invalid subscription plan.', 500);
+  }
+
+  if (planLimits.maxBusinesses !== -1) {
+    const currentBusinessCount = await Business.countDocuments({ ownerId: userId });
+    if (currentBusinessCount >= planLimits.maxBusinesses) {
+      throw new AppError('Business creation limit reached for your current plan.', 403);
+    }
+  }
+
   const business = await Business.create({
     ownerId: userId,
     name: data.name,

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle, Info, AlertTriangle, XCircle, Trash2, Check, ExternalLink, X } from 'lucide-react';
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '../../services/notification.service';
 
+import { useAuth } from '../../context/AuthContext';
+
 const getIconForType = (type) => {
   switch (type) {
     case 'success': return <CheckCircle className="h-5 w-5 text-green-400" />;
@@ -25,6 +27,7 @@ const formatTimeAgo = (dateString) => {
 };
 
 export default function NotificationBell() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -34,6 +37,8 @@ export default function NotificationBell() {
   
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  const basePath = user?.platformRole === 'SUPER_ADMIN' ? '/admin' : user?.platformRole === 'BLOGGER' ? '/blogger' : '/dashboard';
 
   const fetchUnreadCount = async () => {
     try {
@@ -237,7 +242,7 @@ export default function NotificationBell() {
 
       <div className="p-3 border-t border-white/10 flex items-center justify-between bg-black/20">
         <Link 
-          to="/dashboard/notifications" 
+          to={`${basePath}/notifications`} 
           onClick={() => setIsOpen(false)}
           className="text-xs font-medium text-white/70 hover:text-white transition flex items-center gap-1.5"
         >

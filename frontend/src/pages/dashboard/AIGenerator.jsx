@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight, Save, Copy, RotateCcw, AlertCircle, CheckCircle2, ArrowLeft, History, Star, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Image as ImageIcon, Download, Maximize2, Loader2 } from 'lucide-react';
-import { getBusinesses } from '../../services/business.service';
+import { useBusiness } from '../../context/BusinessContext';
 import { generatePost, savePost, uploadMedia, deleteMedia, updatePost, generateImage, regenerateImage } from '../../services/post.service';
 import { getPromptHistory, toggleFavoritePrompt, reusePrompt } from '../../services/prompt.service';
 import { useNavigate } from 'react-router-dom';
 import ScheduleModal from '../../components/dashboard/ScheduleModal';
-import ImagePromptEditor from '../../components/dashboard/ImagePromptEditor';
 import ImageViewer from '../../components/dashboard/ImageViewer';
 import PlatformLogo from '../../components/common/PlatformLogo';
-import { getCharLimit } from '../../utils/platformLimits';
 import { toast } from 'sonner';
 
 export default function AIGenerator() {
   const navigate = useNavigate();
-  const [business, setBusiness] = useState(null);
-  const [loadingConfig, setLoadingConfig] = useState(true);
+  const { activeBusiness: business, loading } = useBusiness();
+  const loadingConfig = loading;
   
   // History state
   const [history, setHistory] = useState([]);
@@ -52,21 +50,10 @@ export default function AIGenerator() {
   const [expandedPostIndex, setExpandedPostIndex] = useState(null);
 
   useEffect(() => {
-    const fetchBusinessAndHistory = async () => {
-      try {
-        const { data: { data: businesses } } = await getBusinesses();
-        if (businesses && businesses.length > 0) {
-          setBusiness(businesses[0]);
-          await loadHistory(businesses[0]._id);
-        }
-      } catch (err) {
-        console.error("Failed to fetch business for generator", err);
-      } finally {
-        setLoadingConfig(false);
-      }
-    };
-    fetchBusinessAndHistory();
-  }, []);
+    if (business?._id) {
+      loadHistory(business._id);
+    }
+  }, [business?._id]);
 
   const loadHistory = async (bId) => {
     setHistoryLoading(true);

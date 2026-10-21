@@ -4,43 +4,33 @@ import {
   Sparkles, Bell, ArrowRight, MoreVertical, Calendar,
   FileText, Send, Clock, Megaphone, Plus, Image as ImageIcon, BarChart3, ChevronDown
 } from "lucide-react";
-import { getBusinesses, getDashboardSummary, getCalendar } from "../../services/business.service";
+import { getDashboardSummary, getCalendar } from "../../services/business.service";
+import { useBusiness } from "../../context/BusinessContext";
 import CreateBusinessModal from "../../components/dashboard/CreateBusinessModal";
 import PlatformLogo from "../../components/common/PlatformLogo";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [business, setBusiness] = useState(null);
+  const { activeBusiness: business, refreshBusinesses } = useBusiness();
   const [summaryData, setSummaryData] = useState(null);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   const fetchDashboardData = async () => {
+    if (!business?._id) return;
     setLoading(true);
     try {
-      const { data: { data: businesses } } = await getBusinesses();
-      if (businesses && businesses.length > 0) {
-        setBusiness(businesses[0]);
-        try {
-          const [summaryRes, calendarRes] = await Promise.all([
-            getDashboardSummary(businesses[0]._id),
-            getCalendar(businesses[0]._id)
-          ]);
-          setSummaryData(summaryRes.data.data);
-          // Get only the next 3 scheduled posts
-          const upcoming = (calendarRes.data.data || []).slice(0, 3);
-          setCalendarEvents(upcoming);
-        } catch (err) {
-          console.error("Failed to fetch dashboard secondary data", err);
-        }
-      } else {
-        setBusiness(null);
-        setSummaryData(null);
-      }
+      const [summaryRes, calendarRes] = await Promise.all([
+        getDashboardSummary(business._id),
+        getCalendar(business._id)
+      ]);
+      setSummaryData(summaryRes.data.data);
+      const upcoming = (calendarRes.data.data || []).slice(0, 3);
+      setCalendarEvents(upcoming);
     } catch (err) {
-      console.error("Failed to fetch businesses", err);
+      console.error("Failed to fetch dashboard secondary data", err);
     } finally {
       setLoading(false);
     }
@@ -48,7 +38,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [business?._id]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -85,7 +75,7 @@ export default function Dashboard() {
           onClose={() => setCreateModalOpen(false)} 
           onSuccess={() => {
             setCreateModalOpen(false);
-            fetchDashboardData();
+            refreshBusinesses();
           }}
         />
       </>
@@ -99,7 +89,7 @@ export default function Dashboard() {
         onClose={() => setCreateModalOpen(false)} 
         onSuccess={() => {
           setCreateModalOpen(false);
-          fetchDashboardData();
+          refreshBusinesses();
         }}
       />
       

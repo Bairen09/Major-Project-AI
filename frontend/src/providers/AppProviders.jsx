@@ -1,14 +1,17 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
+import { BusinessProvider } from '../context/BusinessContext';
 // Import other providers here (e.g., ThemeProvider, QueryClientProvider)
 
 export function AppProviders({ children }) {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <BusinessProvider>
+        <BrowserRouter>
+          {children}
+        </BrowserRouter>
+      </BusinessProvider>
     </AuthProvider>
   );
 }

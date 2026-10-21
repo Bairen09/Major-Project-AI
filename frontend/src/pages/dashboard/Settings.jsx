@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getSettings, updateSettings, getDashboardSummary, getBusinesses, uploadLogo, deleteLogo, uploadCoverImage, deleteCoverImage } from '../../services/business.service';
+import { getSettings, updateSettings, getDashboardSummary, uploadLogo, deleteLogo, uploadCoverImage, deleteCoverImage } from '../../services/business.service';
+import { useBusiness } from '../../context/BusinessContext';
 import { uploadAvatar, deleteAvatar } from '../../services/user.service';
 import MediaUploader from '../../components/dashboard/MediaUploader';
 import { CheckCircle, AlertCircle, Save, X, Loader2, ArrowLeft } from 'lucide-react';
@@ -24,7 +25,7 @@ const initialFormState = {
 export default function Settings() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
-  const [business, setBusiness] = useState(null);
+  const { activeBusiness: business, refreshBusinesses } = useBusiness();
   const [fullBusiness, setFullBusiness] = useState(null);
   
   const [formData, setFormData] = useState(initialFormState);
@@ -47,24 +48,10 @@ export default function Settings() {
   const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
-    const fetchBusinessAndSettings = async () => {
-      try {
-        setLoading(true);
-        const { data: { data: businesses } } = await getBusinesses();
-        if (businesses && businesses.length > 0) {
-          setBusiness(businesses[0]);
-          await loadData(businesses[0]._id);
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Failed to fetch business for settings", err);
-        setLoading(false);
-      }
-    };
-    
-    fetchBusinessAndSettings();
-  }, []);
+    if (business?._id) {
+      loadData(business._id);
+    }
+  }, [business?._id]);
 
   const loadData = async (businessId) => {
     try {
@@ -289,6 +276,8 @@ export default function Settings() {
       
       setOriginalData(formData);
       setSuccess(true);
+      await loadData(business._id);
+      await refreshBusinesses();
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setValidationError(err.response?.data?.message || 'Failed to save settings');

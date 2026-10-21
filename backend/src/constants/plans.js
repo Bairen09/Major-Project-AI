@@ -1,28 +1,22 @@
+// src/constants/plans.js
+
 const PLANS = {
-  STARTER: 'starter',
-  GROWTH: 'growth',
-  PRO: 'pro',
-};
-
-const PLAN_LIMITS = {
-  starter: {
-    postsPerMonth: 30,
-    businesses: 1,
-    campaigns: 2,
+  FREE: {
+    maxBusinesses: 1,
+    maxPostsPerDay: 5,
   },
-  growth: {
-    postsPerMonth: 150,
-    businesses: 3,
-    campaigns: 10,
+  STARTER: {
+    maxBusinesses: 3,
+    maxPostsPerDay: 20,
   },
-  pro: {
-    postsPerMonth: Infinity,
-    businesses: Infinity,
-    campaigns: Infinity,
+  PRO: {
+    maxBusinesses: 10,
+    maxPostsPerDay: 100,
+  },
+  AGENCY: {
+    maxBusinesses: -1,
+    maxPostsPerDay: -1,
   },
 };
 
-module.exports = {
-  PLANS,
-  PLAN_LIMITS,
-};
+module.exports = PLANS;

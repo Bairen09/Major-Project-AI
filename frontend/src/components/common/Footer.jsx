@@ -5,10 +5,28 @@ import { Instagram, Facebook, Twitter, Linkedin, Youtube, Mail } from 'lucide-re
 
 export default function Footer() {
   const cols = [
-    { t: "Product", l: ["Features", "Pricing", "Integrations", "Updates"] },
-    { t: "Company", l: ["About", "Careers", "Blog", "Contact"] },
-    { t: "Resources", l: ["Help Center", "Guides", "Templates", "API Docs"] },
-    { t: "Legal", l: ["Privacy Policy", "Terms of Service", "Refund Policy"] },
+    { t: "Product", l: [
+      { name: "Features", path: "/features" },
+      { name: "Pricing", path: "/pricing" },
+      { name: "Integrations", path: "/integrations" },
+      { name: "Updates", path: "/blogs" }
+    ]},
+    { t: "Company", l: [
+      { name: "About", path: "/about" },
+      { name: "Careers", path: "/careers" },
+      { name: "Blog", path: "/blogs" },
+      { name: "Contact", path: "/contact" }
+    ]},
+    { t: "Resources", l: [
+      { name: "Help Center", path: "/help-center" },
+      { name: "Guides", path: "/guides" },
+      { name: "API Docs", path: "/api-docs" }
+    ]},
+    { t: "Legal", l: [
+      { name: "Privacy Policy", path: "/privacy" },
+      { name: "Terms of Service", path: "/terms" },
+      { name: "Refund Policy", path: "/refund" }
+    ]},
   ];
   
   return (
@@ -37,8 +55,10 @@ export default function Footer() {
               <div key={c.t}>
                 <h4 className="font-display text-sm font-semibold text-white">{c.t}</h4>
                 <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  {c.l.map(l => (
-                    <li key={l}><a href="#" className="transition hover:text-white">{l}</a></li>
+                  {c.l.map(link => (
+                    <li key={link.name}>
+                      <Link to={link.path} className="transition hover:text-white">{link.name}</Link>
+                    </li>
                   ))}
                 </ul>
               </div>

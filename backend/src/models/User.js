@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
   },
   platformRole: {
     type: String,
-    enum: ['USER', 'SUPER_ADMIN'],
+    enum: ['USER', 'SUPER_ADMIN', 'BLOGGER'],
     default: 'USER',
   },
   avatarUrl: {

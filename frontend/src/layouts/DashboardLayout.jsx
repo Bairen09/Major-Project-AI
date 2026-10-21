@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
-import { getBusinesses } from '../services/business.service';
+import { useBusiness } from '../context/BusinessContext';
 import { useAuth } from '../context/AuthContext';
 import { LogoMark } from '../components/common/Logo';
-import { BarChart3, Sparkles, Image as ImageIcon, Calendar, TrendingUp, Users, LogOut, Settings, Menu, ChevronLeft, ChevronRight, Bell, BookOpen, Plus } from 'lucide-react';
+import { BarChart3, Sparkles, Image as ImageIcon, Calendar, TrendingUp, Users, LogOut, Settings, Menu, ChevronLeft, ChevronRight, Bell, BookOpen, Plus, LifeBuoy, ChevronDown, Check } from 'lucide-react';
 import NotificationBell from '../components/dashboard/NotificationBell';
 import UserProfileDropdown from '../components/dashboard/UserProfileDropdown';
 import AIAssistant from '../components/dashboard/AIAssistant';
+import CommonFAQ from '../components/common/CommonFAQ';
+import TicketChatWidget from '../components/support/TicketChatWidget';
+import CreateBusinessModal from '../components/dashboard/CreateBusinessModal';
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [business, setBusiness] = useState(null);
-
-  useEffect(() => {
-    if (user) {
-      getBusinesses().then(res => {
-        if (res.data.data && res.data.data.length > 0) {
-          setBusiness(res.data.data[0]);
-        }
-      }).catch(err => console.error(err));
-    }
-  }, [user]);
+  const { businesses, activeBusiness, changeActiveBusiness, refreshBusinesses } = useBusiness();
+  const [isBusinessDropdownOpen, setIsBusinessDropdownOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -38,6 +33,10 @@ export default function DashboardLayout() {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  if (user.platformRole === 'BLOGGER') {
+    return <Navigate to="/blogger" replace />;
+  }
+
   const navItems = [
     { i: <BarChart3 className="h-5 w-5 flex-shrink-0" />, n: "Overview", path: "/dashboard" },
     { i: <Sparkles className="h-5 w-5 flex-shrink-0" />, n: "AI Generator", path: "/dashboard/generate" },
@@ -48,6 +47,7 @@ export default function DashboardLayout() {
     { i: <TrendingUp className="h-5 w-5 flex-shrink-0" />, n: "Analytics", path: "/dashboard/analytics" },
     { i: <Bell className="h-5 w-5 flex-shrink-0" />, n: "Notifications", path: "/dashboard/notifications" },
     { i: <Users className="h-5 w-5 flex-shrink-0" />, n: "Team", path: "/dashboard/team" },
+    { i: <LifeBuoy className="h-5 w-5 flex-shrink-0" />, n: "Support Tickets", path: "/dashboard/tickets" },
     { i: <Settings className="h-5 w-5 flex-shrink-0" />, n: "Settings", path: "/dashboard/settings" },
   ];
 
@@ -63,16 +63,74 @@ export default function DashboardLayout() {
       <aside className={`relative z-20 flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5 bg-[#111114]/80 backdrop-blur-xl flex flex-col ${isCollapsed ? 'w-[80px]' : 'w-[260px]'}`}>
         <div className="flex flex-col flex-1 p-4 overflow-y-auto apple-scrollbar">
           
-          {/* Header - Logo */}
-          <div className={`flex items-center justify-center mb-6 mt-2 px-2`}>
-            <Link to="/" className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-8' : 'w-full'} hover:opacity-80 transition-opacity`}>
-              {business?.logo?.url ? (
-                <img src={business.logo.url} alt="Logo" className="h-8 w-8 rounded-lg object-cover flex-shrink-0 bg-white/5 border border-white/10" />
-              ) : (
-                <LogoMark className="h-8 w-8 flex-shrink-0" />
-              )}
-              {!isCollapsed && <span className="font-display text-lg font-bold tracking-tight text-white whitespace-nowrap transition-opacity duration-300">{business?.name || "LocalBoost"}</span>}
-            </Link>
+          {/* Header - Business Switcher */}
+          <div className="relative mb-6 mt-2 px-2 z-50">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsBusinessDropdownOpen(!isBusinessDropdownOpen);
+              }}
+              className={`flex items-center gap-3 w-full hover:opacity-80 transition-all p-2 rounded-xl border border-transparent ${isBusinessDropdownOpen ? 'bg-white/10 border-white/10' : 'hover:bg-white/5'} ${isCollapsed ? 'justify-center' : 'justify-between'}`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                {activeBusiness?.logo?.url ? (
+                  <img src={activeBusiness.logo.url} alt="Logo" className="h-8 w-8 rounded-lg object-cover flex-shrink-0 bg-white/5 border border-white/10" />
+                ) : (
+                  <LogoMark className="h-8 w-8 flex-shrink-0" />
+                )}
+                {!isCollapsed && <span className="font-display text-base font-bold tracking-tight text-white truncate text-left transition-opacity duration-300">{activeBusiness?.name || "LocalBoost"}</span>}
+              </div>
+              {!isCollapsed && <ChevronDown className={`h-4 w-4 text-white/50 transition-transform ${isBusinessDropdownOpen ? 'rotate-180' : ''}`} />}
+            </button>
+            
+            {isBusinessDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsBusinessDropdownOpen(false)} />
+                <div className={`absolute top-full mt-2 z-50 bg-[#1A1A1E] border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden flex flex-col max-h-[400px] w-[240px] ${isCollapsed ? 'left-full ml-4' : 'left-0'}`}>
+                  <div className="px-3 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Switch Business</div>
+                  <div className="overflow-y-auto apple-scrollbar flex-1">
+                    {businesses.map(b => (
+                      <button
+                        key={b._id}
+                        onClick={() => {
+                          changeActiveBusiness(b._id);
+                          setIsBusinessDropdownOpen(false);
+                        }}
+                        className="w-full text-left flex items-center justify-between px-3 py-2.5 hover:bg-white/5 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          {b.logo?.url ? (
+                            <img src={b.logo.url} alt="" className="h-6 w-6 rounded-md object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="h-6 w-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[10px] font-bold">{b.name?.charAt(0)}</span>
+                            </div>
+                          )}
+                          <span className={`text-sm truncate ${activeBusiness?._id === b._id ? 'text-white font-medium' : 'text-white/70 group-hover:text-white'}`}>{b.name}</span>
+                        </div>
+                        {activeBusiness?._id === b._id && <Check className="h-4 w-4 text-[#D4AF37] flex-shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="border-t border-white/10 mt-1 p-2">
+                    <button 
+                      onClick={() => {
+                        setIsBusinessDropdownOpen(false);
+                        setIsCreateModalOpen(true);
+                      }}
+                      className="w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors group"
+                    >
+                      <div className="h-6 w-6 rounded-md bg-[#D4AF37]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#D4AF37]/20 transition-colors">
+                        <Plus className="h-4 w-4 text-[#D4AF37]" />
+                      </div>
+                      <span className="font-medium">Create Business</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Nav Items */}
@@ -132,13 +190,25 @@ export default function DashboardLayout() {
           </div>
         </div>
         
-        <div className="p-4 md:p-8 lg:px-12 w-full max-w-[1600px] mx-auto flex-1 pb-20 mt-[-48px] md:mt-[-56px] z-10">
+        <div className="p-4 md:p-8 lg:px-12 w-full max-w-[1600px] mx-auto flex-1 pb-20 mt-[-48px] md:mt-[-56px] z-10 flex flex-col">
           <div className="h-12 md:h-14 w-full" /> {/* Spacer for the floating top bar */}
-          <Outlet />
+          <div className="flex-1">
+            <Outlet />
+          </div>
+          <CommonFAQ />
         </div>
       </main>
 
       <AIAssistant />
+      <TicketChatWidget />
+      <CreateBusinessModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false);
+          refreshBusinesses();
+        }}
+      />
     </div>
   );
 }

@@ -1,7 +1,10 @@
 import api from './api';
 
-export const getNotifications = async (page = 1, limit = 20) => {
-  return await api.get(`/notifications?page=${page}&limit=${limit}`);
+export const getNotifications = (page = 1, limit = 20, status, search) => {
+    const params = { page, limit };
+    if (status && status !== 'all') params.status = status;
+    if (search) params.search = search;
+    return api.get('/notifications', { params });
 };
 
 export const getUnreadCount = async () => {

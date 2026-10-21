@@ -20,6 +20,15 @@ exports.getPlatformStatus = async (req, res, next) => {
   }
 };
 
+exports.createUser = async (req, res, next) => {
+  try {
+    const data = await adminService.createUser(req.body);
+    sendSuccess(res, 'User created successfully', data, 201);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
 exports.getUsers = async (req, res, next) => {
   try {
     const data = await adminService.getUsers(req.query);

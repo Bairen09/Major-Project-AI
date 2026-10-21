@@ -38,17 +38,31 @@ const createNotification = async ({ businessId, userId, title, message, type, en
 /**
  * Retrieves notifications for a user with pagination
  */
-const getNotifications = async (userId, { page = 1, limit = 20 } = {}) => {
+const getNotifications = async (userId, { page = 1, limit = 20, status, search } = {}) => {
   const safePage = Math.max(parseInt(page) || 1, 1);
   const safeLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 50);
   const skip = (safePage - 1) * safeLimit;
 
+  const filter = { userId };
+  if (status === 'unread') {
+    filter.isRead = false;
+  } else if (status === 'read') {
+    filter.isRead = true;
+  }
+  
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { message: { $regex: search, $options: 'i' } }
+    ];
+  }
+
   const [notifications, total] = await Promise.all([
-    Notification.find({ userId })
+    Notification.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(safeLimit),
-    Notification.countDocuments({ userId }),
+    Notification.countDocuments(filter),
   ]);
 
   return {
