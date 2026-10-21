@@ -41,8 +41,10 @@ temp/
 # Misc
 *.pid
 *.txt
+!requirements.txt
 
 # Documents
 *.md
 !README.md
+!RUN_GUIDE.md
 docs/
